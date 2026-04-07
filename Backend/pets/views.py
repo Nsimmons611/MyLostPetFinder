@@ -10,16 +10,20 @@ import requests
 
 
 class IsOwnerOrReadOnly(BasePermission):
-    """Allow safe methods to anyone, but write methods only to the owner."""
+    """Custom permission: Allow safe methods to anyone, write methods only to the owner."""
 
     def has_object_permission(self, request, view, obj):
         if request.method in SAFE_METHODS:
             return True
-        # For non-safe methods, only the owner may modify
         return getattr(obj, "owner", None) == request.user
 
 
 class PetList(generics.ListCreateAPIView):
+    """
+    Retrieve user's pets or create a new pet.
+    - GET: List all pets owned by the authenticated user
+    - POST: Create a new pet for the authenticated user
+    """
     serializer_class = PetSerializer
     permission_classes = [IsAuthenticated]
     
@@ -31,6 +35,12 @@ class PetList(generics.ListCreateAPIView):
 
 
 class PetDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a specific pet.
+    - GET: Retrieve pet details
+    - PUT/PATCH: Update pet information
+    - DELETE: Remove pet from user's collection
+    """
     serializer_class = PetSerializer
     permission_classes = [IsAuthenticated]
     
@@ -39,25 +49,66 @@ class PetDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class LostPetList(generics.ListCreateAPIView):
-    queryset = LostPet.objects.all()
+    """
+    Retrieve all active lost pet reports or create a new one.
+    - GET: List all lost pets that have not been found (public list for homepage map)
+    - POST: Report a pet as lost with location coordinates
+    """
     serializer_class = LostPetSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return LostPet.objects.filter(is_found=False)
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
 
 class LostPetDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a lost pet report.
+    - GET: View details of a lost pet (public)
+    - PUT/PATCH: Update lost pet info (owner only)
+    - DELETE: Remove lost pet report (owner only)
+    """
     queryset = LostPet.objects.all()
     serializer_class = LostPetSerializer
     permission_classes = [IsOwnerOrReadOnly]
 
-    # Allow anyone to retrieve; IsOwnerOrReadOnly will restrict updates/deletes
     def get_queryset(self):
         return LostPet.objects.all()
 
 
+class UserLostPetList(generics.ListAPIView):
+    """
+    Retrieve all lost pet reports created by the current authenticated user.
+    Used for the 'My Pets' page to show pets the user has reported as lost.
+    """
+    serializer_class = LostPetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return LostPet.objects.filter(owner=self.request.user)
+
+
+class UserLostPetDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a specific lost pet report owned by the user.
+    Used to mark pets as found or manage lost pet reports.
+    """
+    serializer_class = LostPetSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return LostPet.objects.filter(owner=self.request.user)
+
+
 class SightingList(generics.ListCreateAPIView):
+    """
+    Retrieve all pet sightings or report a new sighting.
+    - GET: List all pet sightings (public list for homepage map)
+    - POST: Report a sighting with location, photo, and details (anonymous or authenticated)
+    """
     serializer_class = SightingSerializer
     permission_classes = [AllowAny]
     
@@ -68,12 +119,14 @@ class SightingList(generics.ListCreateAPIView):
         if self.request.user.is_authenticated:
             serializer.save(reporter=self.request.user)
         else:
-            # For anonymous users, create or get an anonymous user
             anonymous_user, _ = User.objects.get_or_create(username='anonymous')
             serializer.save(reporter=anonymous_user)
 
 
 class SightingDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Retrieve, update, or delete a specific sighting report.
+    """
     serializer_class = SightingSerializer
     permission_classes = [IsAuthenticated]
     
@@ -82,6 +135,10 @@ class SightingDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MatchList(generics.ListCreateAPIView):
+    """
+    Retrieve all pet matches or create a new AI match.
+    Used for Week 10+ AI image similarity matching feature.
+    """
     serializer_class = MatchSerializer
     permission_classes = [IsAuthenticated]
     
@@ -90,12 +147,20 @@ class MatchList(generics.ListCreateAPIView):
 
 
 class MatchDetail(generics.RetrieveUpdateAPIView):
+    """
+    Retrieve or update a specific match.
+    Used for Week 10+ AI image similarity matching feature.
+    """
     serializer_class = MatchSerializer
     permission_classes = [IsAuthenticated]
 
 
 class SignupView(generics.CreateAPIView):
-    """Create a new user account"""
+    """
+    Create a new user account and return JWT authentication tokens.
+    - POST: Register a new user with username, password, and optional email
+    Returns access token, refresh token, and username on success
+    """
     permission_classes = [AllowAny]
     
     def post(self, request, *args, **kwargs):
@@ -122,7 +187,6 @@ class SignupView(generics.CreateAPIView):
                 email=email
             )
             
-            # Generate token for the new user using JWT
             from rest_framework_simplejwt.tokens import RefreshToken
             refresh = RefreshToken.for_user(user)
             
@@ -139,7 +203,11 @@ class SignupView(generics.CreateAPIView):
 
 
 class GeocodeView(APIView):
-    """Geocode a location string to coordinates"""
+    """
+    Convert address/location string to GPS coordinates.
+    - POST: Send location string, receive latitude, longitude, and display name
+    Uses Nominatim (OpenStreetMap) service for geocoding
+    """
     permission_classes = [AllowAny]
     
     def post(self, request):
@@ -152,7 +220,6 @@ class GeocodeView(APIView):
             )
         
         try:
-            # Use Nominatim for geocoding (no API key needed)
             response = requests.get(
                 'https://nominatim.openstreetmap.org/search',
                 params={
@@ -160,17 +227,8 @@ class GeocodeView(APIView):
                     'format': 'json',
                     'limit': 1
                 },
-                headers={'User-Agent': 'LostPetTracker/1.0'},
-                timeout=10
+                headers={'User-Agent': 'LostPetTracker/1.0'}
             )
-            
-            # Check response status
-            if response.status_code != 200:
-                print(f"Nominatim returned status {response.status_code}: {response.text}")
-                return Response(
-                    {'error': f'Nominatim returned status {response.status_code}'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
             
             data = response.json()
             
@@ -187,7 +245,6 @@ class GeocodeView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
         except Exception as e:
-            print(f"GeocodeView error: {str(e)}")
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

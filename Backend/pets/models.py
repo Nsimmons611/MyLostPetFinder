@@ -31,6 +31,8 @@ class LostPet(models.Model):
     location_lost = models.CharField(max_length=255) 
     date_lost = models.DateTimeField()
     is_found = models.BooleanField(default=False)
+    latitude = models.FloatField(null=True, blank=True, help_text="Latitude of where pet was lost")
+    longitude = models.FloatField(null=True, blank=True, help_text="Longitude of where pet was lost")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -40,21 +42,21 @@ class LostPet(models.Model):
 
 class Sighting(models.Model):
     """Report of a sighting of a lost pet"""
-    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sightings')
-    lost_pet = models.ForeignKey(LostPet, on_delete=models.CASCADE, related_name='sightings')
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sightings', null=True, blank=True)
+    lost_pet = models.ForeignKey(LostPet, on_delete=models.CASCADE, related_name='sightings', null=True, blank=True)
     location = models.CharField(max_length=255)
     description = models.TextField()
     photo = models.ImageField(upload_to='sighting_photos/', null=True, blank=True)
     date_sighted = models.DateTimeField()
-    confidence = models.IntegerField(
-        default=50,
-        help_text="Confidence level 1-100 that this is the lost pet"
-    )
+    latitude = models.FloatField(null=True, blank=True, help_text="Latitude of sighting location")
+    longitude = models.FloatField(null=True, blank=True, help_text="Longitude of sighting location")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Sighting of {self.lost_pet.name} by {self.reporter.username}"
+        pet_name = self.lost_pet.name if self.lost_pet else "Unknown pet"
+        reporter_name = self.reporter.username if self.reporter else "Anonymous"
+        return f"Sighting of {pet_name} by {reporter_name}"
 
 
 class Match(models.Model):

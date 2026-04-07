@@ -18,7 +18,7 @@ class LostPetSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = LostPet
-        fields = ['id', 'owner', 'owner_username', 'pet', 'name', 'pet_type', 'description', 'location_lost', 'date_lost', 'is_found', 'photo', 'sighting_count', 'created_at', 'updated_at']
+        fields = ['id', 'owner', 'owner_username', 'pet', 'name', 'pet_type', 'description', 'location_lost', 'date_lost', 'is_found', 'photo', 'sighting_count', 'latitude', 'longitude', 'created_at', 'updated_at']
         read_only_fields = ['owner', 'created_at', 'updated_at']
     
     def get_sighting_count(self, obj):
@@ -39,13 +39,19 @@ class LostPetSerializer(serializers.ModelSerializer):
 
 
 class SightingSerializer(serializers.ModelSerializer):
-    reporter_username = serializers.CharField(source='reporter.username', read_only=True)
-    lost_pet_name = serializers.CharField(source='lost_pet.name', read_only=True)
+    reporter_username = serializers.CharField(source='reporter.username', read_only=True, allow_null=True)
+    lost_pet_name = serializers.SerializerMethodField()
     
     class Meta:
         model = Sighting
-        fields = ['id', 'reporter', 'reporter_username', 'lost_pet', 'lost_pet_name', 'location', 'description', 'photo', 'date_sighted', 'confidence', 'created_at', 'updated_at']
+        fields = ['id', 'reporter', 'reporter_username', 'lost_pet', 'lost_pet_name', 'location', 'description', 'photo', 'date_sighted', 'latitude', 'longitude', 'created_at', 'updated_at']
         read_only_fields = ['reporter', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'lost_pet': {'required': False, 'allow_null': True},
+        }
+    
+    def get_lost_pet_name(self, obj):
+        return obj.lost_pet.name if obj.lost_pet else None
 
 
 class MatchSerializer(serializers.ModelSerializer):

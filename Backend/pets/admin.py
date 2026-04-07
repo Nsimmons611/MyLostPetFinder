@@ -19,8 +19,8 @@ class LostPetAdmin(admin.ModelAdmin):
 
 @admin.register(Sighting)
 class SightingAdmin(admin.ModelAdmin):
-    list_display = ['lost_pet', 'reporter', 'date_sighted', 'confidence']
-    list_filter = ['date_sighted', 'confidence']
+    list_display = ['lost_pet', 'reporter', 'date_sighted']
+    list_filter = ['date_sighted']
     search_fields = ['lost_pet__name', 'reporter__username', 'location']
     readonly_fields = ['created_at', 'updated_at']
 

@@ -1,16 +1,18 @@
 from django.urls import path
 from .views import (
     PetList, PetDetail,
-    LostPetList, LostPetDetail,
+    LostPetList, LostPetDetail, UserLostPetList, UserLostPetDetail,
     SightingList, SightingDetail,
     MatchList, MatchDetail,
     GeocodeView
 )
 
 urlpatterns = [
-    # Pet endpoints
-    path('api/pets/', LostPetList.as_view(), name='lostpet-list'),
-    path('api/pets/<int:pk>/', LostPetDetail.as_view(), name='lostpet-detail'),
+    # Lost Pet endpoints
+    path('api/lostpets/', LostPetList.as_view(), name='lostpet-list'),
+    path('api/lostpets/<int:pk>/', LostPetDetail.as_view(), name='lostpet-detail'),
+    path('api/my-lost-pets/', UserLostPetList.as_view(), name='user-lostpet-list'),
+    path('api/my-lost-pets/<int:pk>/', UserLostPetDetail.as_view(), name='user-lostpet-detail'),
     
     # Owned Pet endpoints
     path('api/owned-pets/', PetList.as_view(), name='pet-list'),
