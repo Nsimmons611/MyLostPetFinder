@@ -20,6 +20,7 @@ const InteractiveMap = dynamic(() => import("../components/InteractiveMap"), { s
 export default function ReportSighting() {
   const router = useRouter();
   const [formData, setFormData] = useState({
+    petType: "dog",
     location: "",
     description: "",
     dateSighted: new Date().toISOString().split('T')[0] + "T" + new Date().toISOString().split('T')[1].slice(0, 5),
@@ -38,7 +39,7 @@ export default function ReportSighting() {
     }));
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === "photo") {
       const file = (e.target as HTMLInputElement).files?.[0];
@@ -77,6 +78,7 @@ export default function ReportSighting() {
       }
 
       const data = new FormData();
+      data.append("petType", formData.petType);
       data.append("location", formData.location);
       data.append("description", formData.description);
       data.append("dateSighted", new Date(formData.dateSighted).toISOString());
@@ -122,6 +124,20 @@ export default function ReportSighting() {
         <p className="text-zinc-400 mb-8">Help reunite lost pets with their owners</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-bold mb-2">Pet Type *</label>
+            <select
+              name="petType"
+              value={formData.petType}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+            >
+              <option value="dog">Dog</option>
+              <option value="cat">Cat</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
           {/* Location Description (Address) */}
           <div>
             <label className="block text-sm font-bold mb-2">Address *</label>

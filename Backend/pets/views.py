@@ -259,7 +259,7 @@ class FindTopMatches(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
         
-        sightings = Sighting.objects.all()
+        sightings = Sighting.objects.filter(pet_type=lost_pet.pet_type)
         
         if not sightings.exists():
             return Response(
@@ -278,7 +278,10 @@ class FindTopMatches(APIView):
             match_record.save()
         
         # Get top 5 matches sorted by score (highest first)
-        top_matches = Match.objects.filter(lost_pet=lost_pet).order_by('-match_score')[:5]
+        top_matches = Match.objects.filter(
+            lost_pet=lost_pet,
+            sighting__pet_type=lost_pet.pet_type,
+        ).order_by('-match_score')[:5]
         
         serializer = MatchSerializer(top_matches, many=True, context={'request': request})
         return Response(
