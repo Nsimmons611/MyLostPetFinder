@@ -6,15 +6,15 @@ import { useRouter } from "next/navigation";
 interface Pet {
   id: number;
   name: string;
-  pet_type: string;
+  petType: string;
   description: string;
   photo?: string;
-  created_at: string;
+  createdAt: string;
 }
 
 interface LostPetReport {
   id: number;
-  is_found: boolean;
+  isFound: boolean;
 }
 
 export default function MyPets() {
@@ -57,10 +57,10 @@ export default function MyPets() {
         if (Array.isArray(data)) {
           const reportsByPetId: Record<number, LostPetReport> = {};
           data.forEach((report: any) => {
-            if (report.pet && !report.is_found) {
+            if (report.pet && !report.isFound) {
               reportsByPetId[report.pet] = {
                 id: report.id,
-                is_found: report.is_found,
+                isFound: report.isFound,
               };
             }
           });
@@ -112,7 +112,7 @@ export default function MyPets() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ is_found: true }),
+        body: JSON.stringify({ isFound: true }),
       });
 
       if (res.ok) {
@@ -161,11 +161,11 @@ export default function MyPets() {
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold text-green-400">{pet.name}</h2>
                     <span className="inline-block bg-zinc-800 text-zinc-500 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter mt-2">
-                      {pet.pet_type}
+                      {pet.petType}
                     </span>
                     <p className="mt-4 text-zinc-300">{pet.description}</p>
                     <p className="text-zinc-500 text-xs mt-3">
-                      Registered: {new Date(pet.created_at).toLocaleDateString()}
+                      Registered: {new Date(pet.createdAt).toLocaleDateString()}
                     </p>
                   </div>
 

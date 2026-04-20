@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import dynamic from 'next/dynamic';
 
 interface PetLocation {
   id: number;
   name: string;
-  pet_type: string;
-  location_lost: string;
+  petType: string;
+  locationLost: string;
   lat: number;
   lng: number;
 }
@@ -34,6 +34,9 @@ export default function Map({ pets }: MapProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Dynamically import leaflet CSS to avoid TypeScript compilation errors
+    // @ts-ignore
+    import('leaflet/dist/leaflet.css');
     setMounted(true);
   }, []);
 
@@ -77,8 +80,8 @@ export default function Map({ pets }: MapProps) {
               <Popup>
                 <div className="flex flex-col gap-2">
                   <h3 className="font-bold text-blue-600">{pet.name}</h3>
-                  <p className="text-sm">{pet.pet_type.toUpperCase()}</p>
-                  <p className="text-xs text-zinc-600">{pet.location_lost}</p>
+                  <p className="text-sm">{pet.petType.toUpperCase()}</p>
+                  <p className="text-xs text-zinc-600">{pet.locationLost}</p>
                 </div>
               </Popup>
             </Marker>

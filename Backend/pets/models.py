@@ -60,7 +60,6 @@ class Sighting(models.Model):
 
 
 class Match(models.Model):
-    """Potential or confirmed match between a sighting and lost pet"""
     MATCH_STATUS = [
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
@@ -68,7 +67,7 @@ class Match(models.Model):
         ('false_alarm', 'False Alarm'),
     ]
     
-    sighting = models.OneToOneField(Sighting, on_delete=models.CASCADE, related_name='match')
+    sighting = models.ForeignKey(Sighting, on_delete=models.CASCADE, related_name='matches')
     lost_pet = models.ForeignKey(LostPet, on_delete=models.CASCADE, related_name='matches')
     status = models.CharField(max_length=50, choices=MATCH_STATUS, default='pending')
     match_score = models.FloatField(default=0.5, help_text="Confidence score 0-1")

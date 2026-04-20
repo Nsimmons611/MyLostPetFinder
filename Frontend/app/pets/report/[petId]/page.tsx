@@ -23,7 +23,7 @@ const InteractiveMap = dynamic(() => import('../../../components/InteractiveMap'
 interface Pet {
   id: number;
   name: string;
-  pet_type: string;
+  petType: string;
   description: string;
 }
 
@@ -38,8 +38,8 @@ export default function ReportLostPet() {
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
-    date_lost: new Date().toISOString().split('T')[0],
-    location_lost: '',
+    dateLost: new Date().toISOString().split('T')[0],
+    locationLost: '',
     latitude: null as number | null,
     longitude: null as number | null,
   });
@@ -94,7 +94,7 @@ export default function ReportLostPet() {
       return;
     }
 
-    if (!formData.date_lost) {
+    if (!formData.dateLost) {
       setError('Please select a date');
       setSubmitting(false);
       return;
@@ -103,7 +103,7 @@ export default function ReportLostPet() {
     const token = localStorage.getItem('token');
 
     try {
-      const dateISO = new Date(formData.date_lost).toISOString();
+      const dateISO = new Date(formData.dateLost).toISOString();
 
       const res = await fetch('http://127.0.0.1:8000/api/lostpets/', {
         method: 'POST',
@@ -115,10 +115,10 @@ export default function ReportLostPet() {
         body: JSON.stringify({
           pet: parseInt(petId),
           name: pet?.name,
-          pet_type: pet?.pet_type,
+          petType: pet?.petType,
           description: pet?.description,
-          date_lost: dateISO,
-          location_lost: formData.location_lost,
+          dateLost: dateISO,
+          locationLost: formData.locationLost,
           latitude: formData.latitude,
           longitude: formData.longitude,
         }),
@@ -190,7 +190,7 @@ export default function ReportLostPet() {
                 <label className="block text-sm font-semibold mb-2">Type</label>
                 <input
                   type="text"
-                  value={pet.pet_type}
+                  value={pet.petType}
                   disabled
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-zinc-400"
                 />
@@ -211,8 +211,8 @@ export default function ReportLostPet() {
                 <label className="block text-sm font-semibold mb-2">Date Lost</label>
                 <input
                   type="date"
-                  name="date_lost"
-                  value={formData.date_lost}
+                  name="dateLost"
+                  value={formData.dateLost}
                   onChange={handleInputChange}
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white"
                 />
@@ -221,9 +221,9 @@ export default function ReportLostPet() {
                 <label className="block text-sm font-semibold mb-2">Location Description</label>
                 <input
                   type="text"
-                  name="location_lost"
+                  name="locationLost"
                   placeholder="e.g., Downtown area, near school"
-                  value={formData.location_lost}
+                  value={formData.locationLost}
                   onChange={handleInputChange}
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white"
                 />

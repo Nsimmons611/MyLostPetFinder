@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function RegisterPet() {
   const [formData, setFormData] = useState({
     name: "",
-    pet_type: "dog",
+    petType: "dog",
     description: "",
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -38,7 +38,7 @@ export default function RegisterPet() {
       // Create FormData to handle file upload
       const data = new FormData();
       data.append("name", formData.name);
-      data.append("pet_type", formData.pet_type);
+      data.append("petType", formData.petType);
       data.append("description", formData.description);
       if (photoFile) {
         data.append("photo", photoFile);
@@ -83,8 +83,8 @@ export default function RegisterPet() {
 
         <select
           className="w-full p-4 bg-zinc-900 border border-zinc-800 rounded-xl"
-          value={formData.pet_type}
-          onChange={(e) => setFormData({ ...formData, pet_type: e.target.value })}
+          value={formData.petType}
+          onChange={(e) => setFormData({ ...formData, petType: e.target.value })}
         >
           <option value="dog">Dog</option>
           <option value="cat">Cat</option>

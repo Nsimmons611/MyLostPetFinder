@@ -4,7 +4,8 @@ from .views import (
     LostPetList, LostPetDetail, UserLostPetList, UserLostPetDetail,
     SightingList, SightingDetail,
     MatchList, MatchDetail,
-    GeocodeView
+    GeocodeView,
+    FindTopMatches
 )
 
 urlpatterns = [
@@ -13,6 +14,7 @@ urlpatterns = [
     path('api/lostpets/<int:pk>/', LostPetDetail.as_view(), name='lostpet-detail'),
     path('api/my-lost-pets/', UserLostPetList.as_view(), name='user-lostpet-list'),
     path('api/my-lost-pets/<int:pk>/', UserLostPetDetail.as_view(), name='user-lostpet-detail'),
+    path('api/lostpets/<int:lost_pet_id>/top-matches/', FindTopMatches.as_view(), name='top-matches'),
     
     # Owned Pet endpoints
     path('api/owned-pets/', PetList.as_view(), name='pet-list'),

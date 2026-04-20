@@ -10,18 +10,18 @@ const InteractiveMap = dynamic(() => import('../../components/InteractiveMap'), 
 interface LostPet {
   id: number;
   name: string;
-  pet_type: string;
-  location_lost: string;
+  petType: string;
+  locationLost: string;
 }
 
 export default function ReportSighting() {
   const router = useRouter();
   const [lostPets, setLostPets] = useState<LostPet[]>([]);
   const [formData, setFormData] = useState({
-    lost_pet: '',
+    lostPet: '',
     location: '',
     description: '',
-    date_sighted: new Date().toISOString().split('T')[0],
+    dateSighted: new Date().toISOString().split('T')[0],
     confidence: 50,
     latitude: null as number | null,
     longitude: null as number | null,
@@ -35,10 +35,10 @@ export default function ReportSighting() {
     fetch('http://127.0.0.1:8000/api/lostpets/')
       .then(res => res.json())
       .then(data => {
-        const activePets = Array.isArray(data) ? data.filter((pet: any) => !pet.is_found) : [];
+        const activePets = Array.isArray(data) ? data.filter((pet: any) => !pet.isFound) : [];
         setLostPets(activePets);
-        if (activePets.length > 0 && !formData.lost_pet) {
-          setFormData(prev => ({ ...prev, lost_pet: activePets[0].id.toString() }));
+        if (activePets.length > 0 && !formData.lostPet) {
+          setFormData(prev => ({ ...prev, lostPet: activePets[0].id.toString() }));
         }
       })
       .catch(err => console.error('Failed to fetch lost pets:', err))
@@ -87,7 +87,7 @@ export default function ReportSighting() {
         },
         body: JSON.stringify({
           ...formData,
-          lost_pet: parseInt(formData.lost_pet),
+          lostPet: parseInt(formData.lostPet),
         }),
       });
 
@@ -149,16 +149,16 @@ export default function ReportSighting() {
           <div>
             <label className="block text-sm font-bold mb-2">Which pet did you see? *</label>
             <select
-              value={formData.lost_pet}
+              value={formData.lostPet}
               onChange={handleInputChange}
-              name="lost_pet"
+              name="lostPet"
               required
               className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
             >
               <option value="">Select a pet...</option>
               {lostPets.map(pet => (
                 <option key={pet.id} value={pet.id}>
-                  {pet.name} ({pet.pet_type}) - Lost at {pet.location_lost}
+                  {pet.name} ({pet.petType}) - Lost at {pet.locationLost}
                 </option>
               ))}
             </select>
@@ -212,8 +212,8 @@ export default function ReportSighting() {
             <label className="block text-sm font-bold mb-2">Date Sighted *</label>
             <input
               type="date"
-              name="date_sighted"
-              value={formData.date_sighted}
+              name="dateSighted"
+              value={formData.dateSighted}
               onChange={handleInputChange}
               required
               className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"

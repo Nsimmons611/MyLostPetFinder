@@ -22,7 +22,7 @@ export default function ReportSighting() {
   const [formData, setFormData] = useState({
     location: "",
     description: "",
-    date_sighted: new Date().toISOString().split('T')[0] + "T" + new Date().toISOString().split('T')[1].slice(0, 5),
+    dateSighted: new Date().toISOString().split('T')[0] + "T" + new Date().toISOString().split('T')[1].slice(0, 5),
     latitude: null as number | null,
     longitude: null as number | null,
   });
@@ -79,7 +79,7 @@ export default function ReportSighting() {
       const data = new FormData();
       data.append("location", formData.location);
       data.append("description", formData.description);
-      data.append("date_sighted", new Date(formData.date_sighted).toISOString());
+      data.append("dateSighted", new Date(formData.dateSighted).toISOString());
       data.append("latitude", formData.latitude.toString());
       data.append("longitude", formData.longitude.toString());
       if (photoFile) {
@@ -173,8 +173,8 @@ export default function ReportSighting() {
             <label className="block text-sm font-bold mb-2">Date & Time Sighted *</label>
             <input
               type="datetime-local"
-              name="date_sighted"
-              value={formData.date_sighted}
+              name="dateSighted"
+              value={formData.dateSighted}
               onChange={handleInputChange}
               required
               className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"

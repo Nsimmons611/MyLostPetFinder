@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from .models import Pet, LostPet, Sighting, Match
 from .serializers import PetSerializer, LostPetSerializer, SightingSerializer, MatchSerializer
+from .imageMatching import match
 import requests
 
 
@@ -203,11 +204,6 @@ class SignupView(generics.CreateAPIView):
 
 
 class GeocodeView(APIView):
-    """
-    Convert address/location string to GPS coordinates.
-    - POST: Send location string, receive latitude, longitude, and display name
-    Uses Nominatim (OpenStreetMap) service for geocoding
-    """
     permission_classes = [AllowAny]
     
     def post(self, request):
@@ -249,3 +245,43 @@ class GeocodeView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class FindTopMatches(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request, lost_pet_id):
+        try:
+            lost_pet = LostPet.objects.get(id=lost_pet_id)
+        except LostPet.DoesNotExist:
+            return Response(
+                {'error': 'Lost pet not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        sightings = Sighting.objects.all()
+        
+        if not sightings.exists():
+            return Response(
+                {'matches': []},
+                status=status.HTTP_200_OK
+            )
+        
+        for sighting in sightings:
+            match_record, created = Match.objects.get_or_create(
+                sighting=sighting,
+                lost_pet=lost_pet
+            )
+            
+            match_score = match(lost_pet, sighting)
+            match_record.match_score = match_score
+            match_record.save()
+        
+        # Get top 5 matches sorted by score (highest first)
+        top_matches = Match.objects.filter(lost_pet=lost_pet).order_by('-match_score')[:5]
+        
+        serializer = MatchSerializer(top_matches, many=True, context={'request': request})
+        return Response(
+            {'matches': serializer.data},
+            status=status.HTTP_200_OK
+        )

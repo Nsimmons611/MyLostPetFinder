@@ -10,6 +10,8 @@ export default function PetDetail() {
   const [allPets, setAllPets] = useState<any[]>([]);
   const [status, setStatus] = useState("loading");
   const [modalOpen, setModalOpen] = useState(false);
+  const [topMatches, setTopMatches] = useState<any[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(false);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -25,7 +27,7 @@ export default function PetDetail() {
       .then((data) => {
         const pets = Array.isArray(data) ? data : data.results || [];
         // Filter out found pets for navigation
-        const activePets = pets.filter((pet: any) => !pet.is_found);
+        const activePets = pets.filter((pet: any) => !pet.isFound);
         setAllPets(activePets);
       })
       .catch((err) => console.error("Error fetching pets:", err));
@@ -48,6 +50,28 @@ export default function PetDetail() {
         setStatus("error");
       });
   }, [params?.id]);
+
+  // Fetch top matches for the lost pet
+  useEffect(() => {
+    if (!pet?.id) return;
+
+    setMatchesLoading(true);
+    const token = localStorage.getItem("token");
+    
+    fetch(`http://127.0.0.1:8000/api/lostpets/${pet.id}/top-matches/`, {
+      headers: token ? { "Authorization": `Bearer ${token}` } : {},
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setTopMatches(data.matches || []);
+        setMatchesLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching matches:", err);
+        setMatchesLoading(false);
+      });
+  }, [pet?.id]);
 
   // Close modal on Escape
   useEffect(() => {
@@ -100,8 +124,53 @@ export default function PetDetail() {
           <p className="text-xl">{pet?.description}</p>
           <div className="p-4 bg-zinc-800 rounded-lg">
             <p className="text-zinc-400 text-sm font-bold uppercase">Last Seen</p>
-            <p className="text-lg">{pet?.location_lost}</p>
+            <p className="text-lg">{pet?.locationLost}</p>
           </div>
+        </div>
+
+        {/* Possible Matches Section */}
+        <div className="mt-10">
+          <h2 className="text-3xl font-bold text-blue-400 mb-6">Possible Matches</h2>
+          
+          {matchesLoading ? (
+            <p className="text-zinc-400">Loading matches...</p>
+          ) : topMatches.length > 0 ? (
+            <div className="space-y-4">
+              {topMatches.map((match: any, index: number) => (
+                <div key={match.id} className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-blue-500 transition">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-lg font-bold text-blue-400">#{index + 1}</span>
+                        <h3 className="text-xl font-semibold">{match.sightingDetails?.location || "Unknown Location"}</h3>
+                      </div>
+                      <p className="text-zinc-400 text-sm mb-2">
+                        Sighted: {new Date(match.sightingDetails?.dateSighted).toLocaleDateString()}
+                      </p>
+                      <p className="text-zinc-300 text-sm">{match.sightingDetails?.description}</p>
+                    </div>
+                    
+                    <div className="ml-4 text-right">
+                      <div className="text-3xl font-bold text-green-400">
+                        {(match.matchScore * 100).toFixed(1)}%
+                      </div>
+                      <p className="text-zinc-400 text-xs mt-1">Match Score</p>
+                    </div>
+                  </div>
+
+                  {match.sightingDetails?.photo && (
+                    <img 
+                      src={match.sightingDetails.photo} 
+                      alt="Sighting" 
+                      className="mt-3 w-full h-32 object-cover rounded-lg border border-zinc-700"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-zinc-400">No sightings available for this pet yet.</p>
+          )}
         </div>
 
         {/* Navigation Buttons */}
@@ -146,7 +215,7 @@ export default function PetDetail() {
 
               <div className="flex-1">
                 <h2 className="text-3xl font-bold">{pet.name}</h2>
-                <p className="text-zinc-400 mt-2">{pet.pet_type} • {pet.location_lost}</p>
+                <p className="text-zinc-400 mt-2">{pet.petType} • {pet.locationLost}</p>
                 <p className="mt-4 text-zinc-300">{pet.description}</p>
               </div>
             </div>

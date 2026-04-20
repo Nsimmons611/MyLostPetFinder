@@ -8,10 +8,10 @@ const Map = dynamic(() => import("./components/Map"), { ssr: false });
 interface LostPet {
   id: number;
   name: string;
-  pet_type: string;
+  petType: string;
   description: string;
-  location_lost: string;
-  is_found: boolean;
+  locationLost: string;
+  isFound: boolean;
   photo?: string;
   latitude?: number;
   longitude?: number;
@@ -19,8 +19,8 @@ interface LostPet {
 
 interface Sighting {
   id: number;
-  lost_pet: number;
-  lost_pet_name: string;
+  lostPet: number;
+  lostPetName: string;
   location: string;
   description: string;
   photo?: string;
@@ -31,8 +31,8 @@ interface Sighting {
 interface MapPin {
   id: number;
   name: string;
-  pet_type: string;
-  location_lost: string;
+  petType: string;
+  locationLost: string;
   lat: number;
   lng: number;
 }
@@ -59,7 +59,7 @@ export default function Home() {
       .then((data) => {
         if (Array.isArray(data)) {
           // Filter out pets marked as found
-          const activePets = data.filter((pet: LostPet) => !pet.is_found);
+          const activePets = data.filter((pet: LostPet) => !pet.isFound);
           setLostPets(activePets);
         }
       })
@@ -89,8 +89,8 @@ export default function Home() {
         pins.push({
           id: pet.id,
           name: pet.name,
-          pet_type: pet.pet_type,
-          location_lost: pet.location_lost,
+          petType: pet.petType,
+          locationLost: pet.locationLost,
           lat: pet.latitude,
           lng: pet.longitude,
         });
@@ -102,9 +102,9 @@ export default function Home() {
       if (sighting.latitude && sighting.longitude) {
         pins.push({
           id: sighting.id,
-          name: sighting.lost_pet_name,
-          pet_type: 'sighting',
-          location_lost: `Sighting: ${sighting.location}`,
+          name: sighting.lostPetName,
+          petType: 'sighting',
+          locationLost: `Sighting: ${sighting.location}`,
           lat: sighting.latitude,
           lng: sighting.longitude,
         });
@@ -205,10 +205,10 @@ export default function Home() {
                       <div className="flex justify-between items-start">
                         <h2 className="text-2xl font-bold group-hover:text-blue-400 transition">{pet.name}</h2>
                         <span className="bg-zinc-800 text-zinc-500 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">
-                          {pet.pet_type}
+                          {pet.petType}
                         </span>
                       </div>
-                      <p className="mt-4 text-zinc-400 font-medium">{pet.location_lost}</p>
+                      <p className="mt-4 text-zinc-400 font-medium">{pet.locationLost}</p>
                     </div>
                   </div>
                 </div>
@@ -235,7 +235,7 @@ export default function Home() {
 
               <div className="flex-1">
                 <h2 className="text-3xl font-bold">{modalPet.name}</h2>
-                <p className="text-zinc-400 mt-2">{modalPet.pet_type} • {modalPet.location_lost}</p>
+                <p className="text-zinc-400 mt-2">{modalPet.petType} • {modalPet.locationLost}</p>
                 <p className="mt-4 text-zinc-300">{modalPet.description}</p>
               </div>
             </div>

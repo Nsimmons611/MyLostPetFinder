@@ -11,10 +11,10 @@ export default function ReportLostPet() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
-    pet_type: 'dog',
+    petType: 'dog',
     description: '',
-    location_lost: '',
-    date_lost: new Date().toISOString().split('T')[0],
+    locationLost: '',
+    dateLost: new Date().toISOString().split('T')[0],
     latitude: null as number | null,
     longitude: null as number | null,
   });
@@ -111,8 +111,8 @@ export default function ReportLostPet() {
           <div>
             <label className="block text-sm font-bold mb-2">Pet Type *</label>
             <select
-              name="pet_type"
-              value={formData.pet_type}
+              name="petType"
+              value={formData.petType}
               onChange={handleInputChange}
               className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
             >
@@ -141,8 +141,8 @@ export default function ReportLostPet() {
             <label className="block text-sm font-bold mb-2">Location Description *</label>
             <input
               type="text"
-              name="location_lost"
-              value={formData.location_lost}
+              name="locationLost"
+              value={formData.locationLost}
               onChange={handleInputChange}
               placeholder="e.g., Main Street near the park"
               required
@@ -155,8 +155,8 @@ export default function ReportLostPet() {
             <label className="block text-sm font-bold mb-2">Date Lost *</label>
             <input
               type="date"
-              name="date_lost"
-              value={formData.date_lost}
+              name="dateLost"
+              value={formData.dateLost}
               onChange={handleInputChange}
               required
               className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
