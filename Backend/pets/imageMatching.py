@@ -3,10 +3,16 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
-import torch
-import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn.functional as F
+    from torchvision import models
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+    torch = None
+
 from PIL import Image
-from torchvision import models
 
 
 @lru_cache(maxsize=1)
@@ -17,6 +23,11 @@ def _get_feature_extractor():
     ResNet18 is small enough for local development while still producing
     meaningful image embeddings for a school-project prototype.
     """
+    if not TORCH_AVAILABLE:
+        raise RuntimeError(
+            "PyTorch is not installed. Image matching requires: "
+            "pip install torch torchvision"
+        )
     weights = models.ResNet18_Weights.DEFAULT
     model = models.resnet18(weights=weights)
     feature_extractor = torch.nn.Sequential(*list(model.children())[:-1])

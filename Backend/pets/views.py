@@ -6,8 +6,13 @@ from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from .models import Pet, LostPet, Sighting, Match
 from .serializers import PetSerializer, LostPetSerializer, SightingSerializer, MatchSerializer
-from .imageMatching import match
 import requests
+
+try:
+    from .imageMatching import match, TORCH_AVAILABLE
+except ImportError:
+    match = None
+    TORCH_AVAILABLE = False
 
 
 class IsOwnerOrReadOnly(BasePermission):
@@ -273,8 +278,16 @@ class FindTopMatches(APIView):
                 lost_pet=lost_pet
             )
             
-            match_score = match(lost_pet, sighting)
-            match_record.match_score = match_score
+            if TORCH_AVAILABLE and match:
+                try:
+                    match_score = match(lost_pet, sighting)
+                    match_record.match_score = match_score
+                except Exception as e:
+                    # If matching fails, set score to 0 and log error
+                    match_record.match_score = 0.0
+            else:
+                # PyTorch not available; set score to 0
+                match_record.match_score = 0.0
             match_record.save()
         
         # Get top 5 matches sorted by score (highest first)
