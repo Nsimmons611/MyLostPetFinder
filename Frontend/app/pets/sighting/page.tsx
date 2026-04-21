@@ -19,10 +19,10 @@ export default function ReportSighting() {
   const [lostPets, setLostPets] = useState<LostPet[]>([]);
   const [formData, setFormData] = useState({
     lostPet: '',
+    petType: 'dog',
     location: '',
     description: '',
     dateSighted: new Date().toISOString().split('T')[0],
-    confidence: 50,
     latitude: null as number | null,
     longitude: null as number | null,
   });
@@ -38,7 +38,11 @@ export default function ReportSighting() {
         const activePets = Array.isArray(data) ? data.filter((pet: any) => !pet.isFound) : [];
         setLostPets(activePets);
         if (activePets.length > 0 && !formData.lostPet) {
-          setFormData(prev => ({ ...prev, lostPet: activePets[0].id.toString() }));
+          setFormData(prev => ({
+            ...prev,
+            lostPet: activePets[0].id.toString(),
+            petType: activePets[0].petType,
+          }));
         }
       })
       .catch(err => console.error('Failed to fetch lost pets:', err))
@@ -55,9 +59,19 @@ export default function ReportSighting() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'lostPet') {
+      const selectedPet = lostPets.find((pet) => pet.id === parseInt(value));
+      setFormData(prev => ({
+        ...prev,
+        lostPet: value,
+        petType: selectedPet?.petType || prev.petType,
+      }));
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'confidence' ? parseInt(value) : value,
+      [name]: value,
     }));
   };
 
@@ -165,6 +179,21 @@ export default function ReportSighting() {
           </div>
 
           <div>
+            <label className="block text-sm font-bold mb-2">Pet Type *</label>
+            <select
+              name="petType"
+              value={formData.petType}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+            >
+              <option value="dog">Dog</option>
+              <option value="cat">Cat</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div>
             <label className="block text-sm font-bold mb-2">Location Description *</label>
             <input
               type="text"
@@ -188,24 +217,6 @@ export default function ReportSighting() {
               rows={4}
               className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold mb-2">
-              Confidence Level: {formData.confidence}%
-            </label>
-            <input
-              type="range"
-              name="confidence"
-              min="1"
-              max="100"
-              value={formData.confidence}
-              onChange={handleInputChange}
-              className="w-full"
-            />
-            <p className="text-xs text-zinc-400 mt-2">
-              How confident are you this is the lost pet?
-            </p>
           </div>
 
           <div>

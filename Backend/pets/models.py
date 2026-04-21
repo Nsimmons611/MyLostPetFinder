@@ -44,6 +44,7 @@ class Sighting(models.Model):
     """Report of a sighting of a lost pet"""
     reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sightings', null=True, blank=True)
     lost_pet = models.ForeignKey(LostPet, on_delete=models.CASCADE, related_name='sightings', null=True, blank=True)
+    pet_type = models.CharField(max_length=50, choices=PET_TYPES, default='other')
     location = models.CharField(max_length=255)
     description = models.TextField()
     photo = models.ImageField(upload_to='sighting_photos/', null=True, blank=True)
@@ -56,7 +57,7 @@ class Sighting(models.Model):
     def __str__(self):
         pet_name = self.lost_pet.name if self.lost_pet else "Unknown pet"
         reporter_name = self.reporter.username if self.reporter else "Anonymous"
-        return f"Sighting of {pet_name} by {reporter_name}"
+        return f"Sighting of {pet_name} ({self.get_pet_type_display()}) by {reporter_name}"
 
 
 class Match(models.Model):

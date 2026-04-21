@@ -60,6 +60,7 @@ class LostPetSerializer(serializers.ModelSerializer):
 class SightingSerializer(serializers.ModelSerializer):
     reporterUsername = serializers.CharField(source='reporter.username', read_only=True, allow_null=True)
     lostPetName = serializers.SerializerMethodField()
+    petType = serializers.CharField(source='pet_type')
     dateSighted = serializers.DateTimeField(source='date_sighted')
     createdAt = serializers.DateTimeField(source='created_at', read_only=True)
     updatedAt = serializers.DateTimeField(source='updated_at', read_only=True)
@@ -67,7 +68,7 @@ class SightingSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Sighting
-        fields = ['id', 'reporter', 'reporterUsername', 'lostPet', 'lostPetName', 'location', 'description', 'photo', 'dateSighted', 'latitude', 'longitude', 'createdAt', 'updatedAt']
+        fields = ['id', 'reporter', 'reporterUsername', 'lostPet', 'lostPetName', 'petType', 'location', 'description', 'photo', 'dateSighted', 'latitude', 'longitude', 'createdAt', 'updatedAt']
         read_only_fields = ['reporter', 'createdAt', 'updatedAt']
         extra_kwargs = {
             'lostPet': {'required': False, 'allow_null': True},
