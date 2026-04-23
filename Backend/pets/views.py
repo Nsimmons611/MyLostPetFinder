@@ -132,11 +132,16 @@ class SightingList(generics.ListCreateAPIView):
 class SightingDetail(generics.RetrieveUpdateDestroyAPIView):
     """
     Retrieve, update, or delete a specific sighting report.
+    - GET: View sighting details (public)
+    - PUT/PATCH/DELETE: Update or delete sighting (reporter only)
     """
     serializer_class = SightingSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
     def get_queryset(self):
+        # Allow anyone to view, but only the reporter can edit/delete
+        if self.request.method in SAFE_METHODS:
+            return Sighting.objects.all()
         return Sighting.objects.filter(reporter=self.request.user)
 
 
@@ -159,6 +164,60 @@ class MatchDetail(generics.RetrieveUpdateAPIView):
     """
     serializer_class = MatchSerializer
     permission_classes = [IsAuthenticated]
+
+
+class ConfirmMatch(APIView):
+    """
+    Confirm a match and mark the lost pet as found.
+    - POST: Confirm a match, mark lost pet as found, and delete the sighting
+    - Only the owner of the lost pet can confirm a match
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, match_id):
+        try:
+            match_record = Match.objects.get(id=match_id)
+        except Match.DoesNotExist:
+            return Response(
+                {'error': 'Match not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Check if the current user is the owner of the lost pet
+        lost_pet = match_record.lost_pet
+        if lost_pet.owner != request.user:
+            return Response(
+                {'error': 'You do not have permission to confirm this match. Only the owner of the lost pet can do this.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        try:
+            # Mark the lost pet as found
+            lost_pet.is_found = True
+            lost_pet.save()
+            
+            # Update match status to confirmed
+            match_record.status = 'confirmed'
+            match_record.save()
+            
+            # Delete the sighting
+            sighting = match_record.sighting
+            sighting.delete()
+            
+            # Return the updated lost pet
+            serializer = LostPetSerializer(lost_pet, context={'request': request})
+            return Response(
+                {
+                    'message': 'Match confirmed and pet marked as found',
+                    'lost_pet': serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class SignupView(generics.CreateAPIView):

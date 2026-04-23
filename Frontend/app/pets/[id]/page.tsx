@@ -12,6 +12,7 @@ export default function PetDetail() {
   const [modalOpen, setModalOpen] = useState(false);
   const [topMatches, setTopMatches] = useState<any[]>([]);
   const [matchesLoading, setMatchesLoading] = useState(false);
+  const [confirmingMatchId, setConfirmingMatchId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!params?.id) return;
@@ -82,6 +83,49 @@ export default function PetDetail() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [modalOpen]);
+
+  // Handle confirming a match
+  const handleConfirmMatch = async (matchId: number) => {
+    const token = localStorage.getItem("token");
+    
+    if (!token) {
+      alert('You must be logged in to confirm a match.');
+      router.push('/login');
+      return;
+    }
+
+    setConfirmingMatchId(matchId);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/matches/${matchId}/confirm/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include',
+      });
+
+      if (response.status === 403) {
+        alert('Only the owner of the lost pet can confirm a match.');
+        setConfirmingMatchId(null);
+        return;
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert('Failed to confirm match: ' + (errorData.error || 'Unknown error'));
+        setConfirmingMatchId(null);
+        return;
+      }
+
+      // Success! Redirect to home
+      alert('Pet marked as found! Sighting removed from system.');
+      router.push('/');
+    } catch (err) {
+      console.error('Error confirming match:', err);
+      alert('Error confirming match');
+      setConfirmingMatchId(null);
+    }
+  };
 
   const currentIndex = allPets.findIndex((p) => p.id === parseInt(params?.id as string));
   const prevPet = currentIndex > 0 ? allPets[currentIndex - 1] : null;
@@ -162,9 +206,27 @@ export default function PetDetail() {
                     <img 
                       src={match.sightingDetails.photo} 
                       alt="Sighting" 
-                      className="mt-3 w-full h-32 object-cover rounded-lg border border-zinc-700"
+                      className="mt-3 w-full h-32 object-cover rounded-lg border border-zinc-700 cursor-pointer hover:opacity-80 transition"
+                      onClick={() => router.push(`/sighting/${match.sightingDetails.id}`)}
                     />
                   )}
+
+                  {/* Action Buttons */}
+                  <div className="mt-4 flex gap-2">
+                    <Link
+                      href={`/sighting/${match.sightingDetails?.id}`}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold transition text-center"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      onClick={() => handleConfirmMatch(match.id)}
+                      disabled={confirmingMatchId === match.id}
+                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-green-800 px-4 py-2 rounded-lg font-semibold transition"
+                    >
+                      {confirmingMatchId === match.id ? "Confirming..." : "Found It!"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

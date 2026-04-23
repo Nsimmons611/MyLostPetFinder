@@ -3,7 +3,7 @@ from .views import (
     PetList, PetDetail,
     LostPetList, LostPetDetail, UserLostPetList, UserLostPetDetail,
     SightingList, SightingDetail,
-    MatchList, MatchDetail,
+    MatchList, MatchDetail, ConfirmMatch,
     GeocodeView,
     FindTopMatches
 )
@@ -27,6 +27,7 @@ urlpatterns = [
     # Match endpoints
     path('api/matches/', MatchList.as_view(), name='match-list'),
     path('api/matches/<int:pk>/', MatchDetail.as_view(), name='match-detail'),
+    path('api/matches/<int:match_id>/confirm/', ConfirmMatch.as_view(), name='confirm-match'),
     
     # Geocoding endpoint
     path('api/geocode/', GeocodeView.as_view(), name='geocode'),
